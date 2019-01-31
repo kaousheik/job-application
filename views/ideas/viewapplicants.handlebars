@@ -1,0 +1,20 @@
+{{#each application}}
+<div class="card card-body mb-2">
+        <h4>{{applicant}}</h4>
+    {{#if status}}
+        <h5>{{status}}</h5>
+    {{else}}
+    <form action="/ideas/viewapplicants/{{application.id}}" method="put">
+        
+        <div class="form-group">          
+          <label for="status">Status</label>
+          <input type="radio" name="status" class="form-control" value="Approved">Approve
+          <input type="radio" name="status" class="form-control" value="Rejected">Reject
+        </div>
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+    {{/if}}
+</div>
+{{else}}
+<h4>No Applicant Registered</h4>
+{{/each}}
