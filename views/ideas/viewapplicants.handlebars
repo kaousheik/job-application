@@ -4,8 +4,9 @@
     {{#if status}}
         <h5>{{status}}</h5>
     {{else}}
-    <form action="/ideas/viewapplicants/{{application.id}}" method="put">
-        
+    <form action="/ideas/viewapplicants/{{id}}?_method=PUT" method="post">
+        <h4>{{id}}</h4>
+        <input type="hidden" name="_method" value="PUT">
         <div class="form-group">          
           <label for="status">Status</label>
           <input type="radio" name="status" class="form-control" value="Approved">Approve

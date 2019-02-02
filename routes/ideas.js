@@ -7,7 +7,7 @@ const {ensureAuthenticated} = require('../helpers/auth');
 require('../models/Idea');
 //Aplication model
 require('../models/Applications');
-const Job = mongoose.model('ideas');
+const Idea = mongoose.model('ideas');
 const Applications = mongoose.model('application');
 
 // Idea Index Page
@@ -41,9 +41,14 @@ router.get('/edit/:id', ensureAuthenticated,(req, res) => {
     _id: req.params.id
   })
   .then(idea => {
-    res.render('ideas/edit', {
-      idea:idea
-    });
+    if(idea.user != req.user.id){
+      req.flash('error_msg','Not Authorized');
+      res.redirect('/ideas/global');
+    } else {
+      res.render('ideas/edit', {
+        idea:idea
+      });
+    }   
   });
 });
 
@@ -80,25 +85,39 @@ router.post('/',ensureAuthenticated, (req, res) => {
 });
 //Process application
   router.post('/global/:id/:title',ensureAuthenticated, (req, res) => {
-    
-   
-        const newUser = {
-          user: req.user.id,
-          idea: req.params.id,
-          name: req.params.title,
-          applicant: req.user.name
-          
-        }
-        new Applications(newUser)
-        .save()
-        .then(application =>{
-          req.flash('success_msg', 'Successfully Applied');
+    console.log(req.user.id);
+    console.log(req.params.id);
+    Applications.findOne({
+      user: req.user.id,
+      idea: req.params.id
+    })
+
+      .then(application => {
+        if(application){
+          req.flash('error_msg', 'already applied');
           res.redirect('/ideas/global');
-        })
-        .catch(err =>{
-          console.log(err);
-          return;
-        });
+        } else {
+          const newUser = {
+            user: req.user.id,
+            idea: req.params.id,
+            name: req.params.title,
+            applicant: req.user.name
+            
+          }
+          new Applications(newUser)
+          .save()
+          .then(application =>{
+            req.flash('success_msg', 'Successfully Applied');
+            res.redirect('/ideas/global');
+          })
+          .catch(err =>{
+            console.log(err);
+            return;
+          });
+
+        }
+      })
+
       }
     
   );
@@ -125,8 +144,23 @@ router.get('/viewapplicants/:id', ensureAuthenticated, (req, res) =>{
      });
    })
 });
-
+//update application
+router.put('/viewapplicants/:id',ensureAuthenticated, (req, res)=>{
+  console.log(req.params.id);
+  Applications.findOne({_id: req.params.id})
+  .then(application =>{
+    application.status = req.body.status;
+    application.save()
+    .then(application =>{
+      req.flash('success_msg', 'Video idea updated');
+      res.redirect('/ideas');
+    })
+  });
+  
+  
+});
 //Edit Form process
+
 router.put('/:id',ensureAuthenticated, (req, res) => {
   Idea.findOne({
     _id: req.params.id
@@ -143,20 +177,7 @@ router.put('/:id',ensureAuthenticated, (req, res) => {
       })
   });
 });
-//update application
-router.put('/viewapplicants/:id', (req, res, next)=>{
-  Applications.findOne({_id: req.params.id})
-  .then(application =>{
-    application.status = req.body.status;
-    application.save()
-    .then(application =>{
-      req.flash('success_msg', 'Video idea updated');
-      res.redirect('/ideas');
-    })
-  });
-  
-  
-});
+
 
 // Delete Idea
 router.delete('/:id', ensureAuthenticated, (req, res) => {
