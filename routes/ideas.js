@@ -41,9 +41,14 @@ router.get('/edit/:id', ensureAuthenticated,(req, res) => {
     _id: req.params.id
   })
   .then(idea => {
-    res.render('ideas/edit', {
+    if(idea.user != req.user.id){
+      req.flash('error_msg','Not Authorized');
+      res.redirect('/ideas/global');
+    } else {      
+      res.render('ideas/edit', {
       idea:idea
     });
+    }
   });
 });
 
@@ -144,7 +149,7 @@ router.put('/:id',ensureAuthenticated, (req, res) => {
   });
 });
 //update application
-router.put('/viewapplicants/:id', (req, res, next)=>{
+router.put('/viewapplicants/:id', ensureAuthenticated, (req, res, next)=>{
   Applications.findOne({_id: req.params.id})
   .then(application =>{
     application.status = req.body.status;
